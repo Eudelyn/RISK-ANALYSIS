@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lab – Risk Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF1F4; --sheet:#FFFFFF; --ink:#172338; --muted:#5A6678; --line:#D3DAE2;
+  --blue:#2450B8; --mark:#FFE58A; --mark-ink:#172338;
+  --minor:#9CCBB3; --moderate:#F3C969; --major:#EE8F4A; --severe:#C93A3A;
+  --on-heat:#172338; --on-severe:#FFFFFF;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1726; --sheet:#172235; --ink:#E6ECF4; --muted:#9AA7BA; --line:#2B3A52;
+    --blue:#7FA4FF; --mark:#5B4B12; --mark-ink:#FFE9A6;
+    --minor:#3F7A5E; --moderate:#8E6F1E; --major:#9C4F1C; --severe:#A42D2D;
+    --on-heat:#F3F6FA; --on-severe:#FFFFFF;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1726; --sheet:#172235; --ink:#E6ECF4; --muted:#9AA7BA; --line:#2B3A52;
+  --blue:#7FA4FF; --mark:#5B4B12; --mark-ink:#FFE9A6;
+  --minor:#3F7A5E; --moderate:#8E6F1E; --major:#9C4F1C; --severe:#A42D2D;
+  --on-heat:#F3F6FA; --on-severe:#FFFFFF;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px);scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:17px;line-height:1.6;font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,sans-serif;line-height:1.15;margin:0}
+a{color:var(--blue)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:4px}
+
+.shell{max-width:1180px;margin:0 auto;padding:0 20px 80px;display:grid;grid-template-columns:minmax(0,1fr);max-width:960px}
+@media (max-width:880px){.shell{grid-template-columns:1fr;gap:0}}
+
+/* Side nav */
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;padding-top:40px;font-size:14px}
+nav.toc p{margin:0 0 6px;font-weight:700;color:var(--muted)}
+nav.toc ol{list-style:none;margin:0 0 20px;padding:0;border-left:2px solid var(--line)}
+nav.toc a{display:block;padding:4px 0 4px 14px;margin-left:-2px;border-left:2px solid transparent;color:var(--muted);text-decoration:none}
+nav.toc a:hover{color:var(--ink)}
+nav.toc a.on{color:var(--blue);border-left-color:var(--blue);font-weight:700}
+@media (max-width:880px){nav.toc{display:none}}
+
+/* Hero */
+header.hero{padding:56px 0 36px}
+.hero h1{font-size:clamp(44px,8vw,92px);font-weight:800;letter-spacing:-.03em}
+.meta{color:var(--muted);margin:14px 0 0}
+.equation{margin:34px 0 0;display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;font-family:"Bricolage Grotesque",system-ui,sans-serif}
+.term{background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:12px 16px;min-width:120px}
+.term b{display:block;font-size:30px;font-weight:800;color:var(--blue);letter-spacing:-.02em}
+.term span{font-size:13px;color:var(--muted);font-family:"Atkinson Hyperlegible",sans-serif}
+.op{align-self:center;font-size:28px;color:var(--muted);font-weight:600}
+.objectives{margin:32px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.objectives h2{grid-column:1/-1;font-size:20px}
+.objectives a{display:block;padding:14px 18px;border-radius:12px;background:var(--ink);color:var(--paper);text-decoration:none;font-weight:700}
+.objectives a small{display:block;font-weight:400;opacity:.75}
+
+/* Parts & steps */
+section.part{margin-top:56px}
+.part > h2{font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-.02em;padding-bottom:14px;border-bottom:3px solid var(--ink)}
+.step{background:var(--sheet);border:1px solid var(--line);border-radius:18px;padding:26px 26px 22px;margin-top:22px;position:relative}
+.step h3{font-size:22px;font-weight:600;display:flex;gap:14px;align-items:baseline}
+.step h3 .n{flex:none;display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--blue);color:var(--sheet);font-size:16px;font-weight:800}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .step h3 .n{color:#0F1726}}
+:root[data-theme="dark"] .step h3 .n{color:#0F1726}
+.given{margin:16px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px dashed var(--line);border-radius:999px;padding:4px 12px;font-size:15px;color:var(--muted)}
+.chip strong{color:var(--ink)}
+.formula{margin:16px 0 0;padding:10px 14px;border-left:4px solid var(--blue);background:var(--paper);border-radius:0 10px 10px 0;font-weight:700}
+.qa{margin:18px 0 0}
+.qa .q{font-weight:700;margin:0}
+.qa .a{margin:4px 0 0}
+mark{background:var(--mark);color:var(--mark-ink);padding:1px 6px;border-radius:5px;font-weight:700;
+  box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.prose{max-width:68ch}
+
+/* Tables */
+.scroll{overflow-x:auto;margin-top:18px;border-radius:12px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:15px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+thead th{background:var(--ink);color:var(--paper);font-weight:700;font-size:14px}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right}
+td.ans{font-weight:700}
+td.ans span{background:var(--mark);color:var(--mark-ink);padding:2px 7px;border-radius:5px}
+tr.total td{background:var(--paper);font-weight:700;border-top:2px solid var(--ink)}
+tr.total td:last-child span{font-size:18px}
+
+/* Heat matrix — the hero visual */
+.matrix-wrap{margin-top:20px;display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.matrix{display:grid;grid-template-columns:auto repeat(5,minmax(64px,1fr));gap:5px;min-width:560px}
+.matrix .ax{font-size:13px;color:var(--muted);display:flex;align-items:center;padding:4px 8px}
+.matrix .ax.top{justify-content:center;text-align:center;font-weight:700}
+.matrix .ax.side{font-weight:700;justify-content:flex-end;text-align:right}
+.cell{border-radius:10px;min-height:56px;padding:8px;display:flex;flex-direction:column;justify-content:space-between;color:var(--on-heat);font-size:13px;font-weight:700;position:relative}
+.cell.Minor{background:var(--minor)} .cell.Moderate{background:var(--moderate)}
+.cell.Major{background:var(--major)} .cell.Severe{background:var(--severe);color:var(--on-severe)}
+.pins{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.pin{width:26px;height:26px;border-radius:50%;background:var(--sheet);color:var(--ink);border:2px solid var(--ink);display:grid;place-items:center;font-size:13px;font-weight:800;cursor:pointer;padding:0;font-family:inherit}
+.pin[aria-pressed="true"],.pin:hover{background:var(--ink);color:var(--sheet)}
+.axis-title{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:4px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:14px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px}
+tr.hl td{background:color-mix(in srgb,var(--mark) 55%,transparent)}
+.tag{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:700;font-size:14px;color:var(--on-heat)}
+.tag.Minor{background:var(--minor)} .tag.Moderate{background:var(--moderate)} .tag.Major{background:var(--major)}
+
+/* ALE split bar */
+.split{margin-top:14px}
+.split .bar{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--paper)}
+.split .bar i{display:block;height:100%}
+.split .keys{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted);margin-top:8px}
+.split .keys b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:0}
+.note{color:var(--muted);font-size:15px;margin:14px 0 0}
+
+footer{margin-top:60px;color:var(--muted);font-size:14px}
+
+/* single page-load moment */
+.hero h1{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+.equation .term,.equation .op{animation:rise .6s cubic-bezier(.2,.7,.2,1) both}
+.equation > :nth-child(2){animation-delay:.08s}.equation > :nth-child(3){animation-delay:.16s}
+.equation > :nth-child(4){animation-delay:.24s}.equation > :nth-child(5){animation-delay:.32s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <main>
+    <header class="hero">
+      <h1>Lab – Risk Analysis</h1>
+      <p class="meta">Nov 5, 2026 · Eudelyn Saldevar</p>
+      <div class="objectives">
+        <h2>Objectives</h2>
+        <a href="#part1">Part 1: Use Risk Analysis Methods</a>
+        <a href="#part2">Part 2: Calculate Risks</a>
+      </div>
+    </header>
+
+    <!-- PART 1 -->
+    <section class="part" id="part1">
+      <h2>Part 1: Use Risk Analysis Methods</h2>
+
+      <article class="step" id="p1s1">
+        <h3>Step 1: Calculate the Asset Value</h3>
+        <div class="given">
+          <span class="chip">Initial cost: <strong>$20,000</strong></span>
+          <span class="chip">Organizational value: <strong>$40,000</strong></span>
+          <span class="chip">Public value: <strong>$75,000</strong></span>
+        </div>
+        <div class="qa">
+          <p class="q">What is the total asset value of the server?</p>
+          <p class="a">$20,000 + $40,000 + $75,000 = <mark>$135,000</mark> (tangible and intangible value combined).</p>
+        </div>
+        <div class="qa prose">
+          <p class="q">Why is the intangible cost so high? Is this realistic?</p>
+          <p class="a">Yes, it is realistic. A business’s reputation and customer trust take years to build and are hard to restore once damaged. A compromised customer database can mean lost customers, lost revenue, and liability costs that far exceed the price of the hardware.</p>
+        </div>
+      </article>
+
+      <article class="step" id="p1s2">
+        <h3>Step 2: Calculate the Exposure Factor</h3>
+        <div class="given">
+          <span class="chip">Asset value: <strong>$135,000</strong></span>
+          <span class="chip">Restoration cost (flood): <strong>$30,000</strong></span>
+        </div>
+        <div class="qa">
+          <p class="a"><strong>Exposure Factor:</strong> $30,000 / $135,000 = <mark>0.22 (22%)</mark></p>
+        </div>
+      </article>
+
+      <article class="step" id="p1s3">
+        <h3>Step 3: Calculate the Single Loss Expectancy</h3>
+        <p class="formula">SLE = Asset Value × Exposure Factor</p>
+        <div class="qa">
+          <p class="q">What is the SLE (hard drive failure, EF 0.5)?</p>
+          <p class="a">$135,000 × 0.5 = <mark>$67,500</mark></p>
+        </div>
+        <div class="qa">
+          <p class="q">SLE of a ransomware attack (EF 1.0)?</p>
+          <p class="a">$135,000 × 1.0 = <mark>$135,000</mark></p>
+        </div>
+      </article>
+
+      <article class="step" id="p1s4">
+        <h3>Step 4: Calculate the Annualized Rate of Occurrence</h3>
+        <p class="formula">ARO = 12 months / months between events</p>
+        <div class="qa">
+          <p class="q">a. ARO of a ransomware attack (every 24 months)?</p>
+          <p class="a">12 / 24 = <mark>0.5</mark></p>
+        </div>
+        <div class="qa">
+          <p class="q">b. ARO of hardware failures (every 30 months)?</p>
+          <p class="a">12 / 30 = <mark>0.4</mark></p>
+        </div>
+      </article>
+
+      <article class="step" id="p1s5">
+        <h3>Step 5: Calculate the Annualized Loss Expectancy</h3>
+        <p class="formula">ALE = SLE × ARO</p>
+        <div class="qa">
+          <p class="q">ALE of a hardware failure (SLE $5,000, ARO 2.5)?</p>
+          <p class="a">$5,000 × 2.5 = <mark>$12,500</mark></p>
+        </div>
+        <div class="qa">
+          <p class="q">ALE of a hacking attack (SLE $10,000, ARO 0.5)?</p>
+          <p class="a">$10,000 × 0.5 = <mark>$5,000</mark></p>
+        </div>
+      </article>
+
+      <article class="step" id="p1s6">
+        <h3>Step 6: Calculate the Qualitative Risk Analysis</h3>
+        <p class="note">Risk Impact Matrix (rows = probability of occurrence, columns = risk impact):</p>
+        <div class="matrix-wrap">
+          <div class="scroll" style="border:0;border-radius:0">
+            <div class="matrix" id="matrix" role="table" aria-label="Risk impact matrix"></div>
+          </div>
+        </div>
+        <div class="scroll">
+          <table id="events">
+            <thead><tr><th>Event</th><th>Risk Impact</th><th>Probability</th><th>Qualitative Impact</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <!-- PART 2 -->
+    <section class="part" id="part2">
+      <h2>Part 2: Calculate Risks</h2>
+      <p class="formula" style="margin-top:20px">Formulas used: SLE = Asset Value × EF · ARO = 12 / months between events · ALE = SLE × ARO. Answers are in bold.</p>
+      <div id="scenarios"></div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ---------- Part 1, Step 6 ---------- */
+const impacts=["Very Low","Low","Medium","High","Very High"];
+const probs=["Highly Probable","Probable","Possible","Unlikely","Rare"];
+const grid=[
+  ["Moderate","Major","Major","Severe","Severe"],
+  ["Moderate","Moderate","Major","Major","Severe"],
+  ["Minor","Moderate","Moderate","Moderate","Major"],
+  ["Minor","Moderate","Moderate","Moderate","Major"],
+  ["Minor","Minor","Minor","Moderate","Moderate"]
+];
+const events=[
+  {n:1,name:"Event 1: Web Server Hard Drive Failure",impact:"Very High",prob:"Possible",q:"Major"},
+  {n:2,name:"Event 2: A DoS/DDoS Attack",impact:"High",prob:"Probable",q:"Major"},
+  {n:3,name:"Event 3: Fire in the Server Room",impact:"Very High",prob:"Rare",q:"Moderate"},
+  {n:4,name:"Event 4: Data Breach/Credit Card Data Stolen",impact:"Very High",prob:"Unlikely",q:"Major"},
+  {n:5,name:"Event 5: Weather/Tornado",impact:"Low",prob:"Rare",q:"Minor"}
+];
+const M=document.getElementById("matrix");
+M.insertAdjacentHTML("beforeend",`<div class="ax side" role="columnheader">Probability of Occurrence</div>`+impacts.map(i=>`<div class="ax top" role="columnheader">${i}</div>`).join(""));
+probs.forEach((p,r)=>{
+  M.insertAdjacentHTML("beforeend",`<div class="ax side" role="rowheader">${p}</div>`);
+  impacts.forEach((imp,c)=>{
+    M.insertAdjacentHTML("beforeend",`<div class="cell ${grid[r][c]}" role="cell"><span>${grid[r][c]}</span></div>`);
+  });
+});
+const ET=document.querySelector("#events tbody");
+ET.innerHTML=events.map(e=>`<tr data-n="${e.n}"><td>${e.name}</td><td>${e.impact}</td><td>${e.prob}</td><td><span class="tag ${e.q}">${e.q}</span></td></tr>`).join("");
+
+/* ---------- Part 2 ---------- */
+// "*" marks a bold (answer) value, as in the original
+const scenarios=[
+  {id:"p2s1",title:"ABC Company Laptops Scenario",asset:"Asset value: $1,200 per laptop.",total:"$1,224",rows:[
+    ["Theft of Equipment","$1,200","100% (1.0)","Once every 2 years","*0.5","$600",600],
+    ["Damage by Dropping","*$720","60% (0.6)","Once every 5 years","0.2","$144",144],
+    ["Malware","$240","20% (0.2)","Twice a year","2","*$480",480]]},
+  {id:"p2s2",title:"ABC Company Storage Area Network Scenario",asset:"Asset value: $250,000.",total:"$68,750",rows:[
+    ["Drive Failure","*$12,500","5% (0.05)","Twice a year","2","$25,000",25000],
+    ["Power Outage","$250,000","100% (1.0)","Once every 8 years","*0.125","*$31,250",31250],
+    ["DoS/DDoS Attack","*$25,000","10% (0.1)","Once every 2 years","*0.5","*$12,500",12500]]},
+  {id:"p2s3",title:"ABC Company Database Server Threats Scenario",asset:"Asset value: $18,000 + $2,000 = $20,000.",total:"$11,816",rows:[
+    ["Device Failure","*$1,000","5% (0.05)","Once every 18 months","0.66","$666",666],
+    ["Power Outage","$20,000","100% (1.0)","Once every 5 years","*0.2","$4,000",4000],
+    ["DoS/DDoS Attack","$3,000","15% (0.15)","Once every 4 years","0.25","*$750",750],
+    ["Theft of Information","*$8,000","40% (0.4)","Once every 2 years","*0.5","*$4,000",4000],
+    ["Configuration Mistakes","*$200","1% (0.01)","Once a month","*12","*$2,400",2400]]},
+  {id:"p2s4",title:"ABC Company Point-of-Sale System Challenge Scenario",asset:"Asset value: $10,000 + $5,000 = $15,000.",total:"$7,500",rows:[
+    ["Theft of Equipment","*$15,000","100% (1.0)","Once every 5 years","0.2","*$3,000",3000],
+    ["Equipment Failure","$1,500","10% (0.1)","Twice a year","*2","*$3,000",3000],
+    ["Ransomware","*$3,000","20% (0.2)","Once every 10 years","*0.1","*$300",300],
+    ["Data Breach","$6,000","40% (0.4)","Once every 5 years","0.2","*$1,200",1200]]},
+  {id:"p2s5",title:"ABC Company Private Cloud Facility Challenge Scenario",asset:"Asset value: $500,000 + $50,000 + $450,000 = $1,000,000.",total:"$390,000",rows:[
+    ["Power Outage","*$500,000","50% (0.5)","Once every 5 years","*0.2","$100,000",100000],
+    ["DoS/DDoS Attack","*$400,000","40% (0.4)","Once every 2 years","*0.5","$200,000",200000],
+    ["Data Breach","*$400,000","40% (0.4)","Once every 10 years","*0.1","*$40,000",40000],
+    ["Flood","*$1,000,000","100% (1.0)","Once every 20 years","*0.05","*$50,000",50000]]}
+];
+const shades=["#2450B8","#4E8FD9","#8BB8E8","#7B6CC4","#B5A8E6"];
+const cell=(v,num)=>{const b=v.startsWith("*");const t=b?v.slice(1):v;return `<td class="${num?"num":""}${b?" ans":""}">${b?`<span>${t}</span>`:t}</td>`};
+document.getElementById("scenarios").innerHTML=scenarios.map((s,i)=>{
+  return `<article class="step" id="${s.id}">
+    <h3>Step ${i+1}: ${s.title}</h3>
+    <div class="given"><span class="chip"><strong>${s.asset}</strong></span></div>
+    <div class="scroll"><table>
+      <thead><tr><th>Threat Event</th><th class="num">SLE</th><th>EF</th><th>Rate of Occurrence</th><th class="num">ARO</th><th class="num">ALE</th></tr></thead>
+      <tbody>${s.rows.map(r=>`<tr><td>${r[0]}</td>${cell(r[1],1)}${cell(r[2])}${cell(r[3])}${cell(r[4],1)}${cell(r[5],1)}</tr>`).join("")}
+      <tr class="total"><td>Total ALE for all threats</td><td></td><td></td><td></td><td></td><td class="num ans"><span>${s.total}</span></td></tr></tbody>
+    </table></div>
+  </article>`;
+}).join("");
+
+</script>
+</body>
+</html>
